@@ -1,5 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = "3.13"
+# dependencies = [
+#     "markitdown",
+# ]
+# ///
 
 try:
     import gnureadline as readline  # 覆盖 libedit
