@@ -1,0 +1,298 @@
+/* Custom styles for PDF Watermark Tool */
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* File list styles */
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+}
+
+.file-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.file-path {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.file-remove {
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.file-remove:hover {
+    color: #b02a37;
+}
+
+/* Preview styles */
+.preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 0.25rem;
+    background-color: #fff;
+    font-size: 0.875rem;
+}
+
+.preview-original {
+    color: #6c757d;
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.preview-arrow {
+    color: #0d6efd;
+    margin: 0 0.5rem;
+}
+
+.preview-output {
+    color: #198754;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* Progress styles */
+.progress {
+    height: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.progress-bar {
+    background-color: #198754;
+    transition: width 0.3s ease;
+}
+
+/* Status badges */
+.status-success {
+    background-color: #198754;
+}
+
+.status-error {
+    background-color: #dc3545;
+}
+
+.status-processing {
+    background-color: #ffc107;
+}
+
+/* Connection status */
+.connection-success {
+    background-color: #198754;
+}
+
+.connection-error {
+    background-color: #dc3545;
+}
+
+.connection-testing {
+    background-color: #ffc107;
+}
+
+/* Form range custom styling */
+.form-range::-webkit-slider-thumb {
+    background-color: #0d6efd;
+}
+
+.form-range::-moz-range-thumb {
+    background-color: #0d6efd;
+    border: none;
+}
+
+/* Color picker styling */
+.form-control-color {
+    width: 3rem;
+    height: calc(2.25rem + 2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Animation for loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Table responsive improvements */
+.table-responsive {
+    border-radius: 0.375rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+/* Alert improvements */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Floating alert styles - 悬浮不占位的提示信息 */
+.alert-floating {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+    margin: 0;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-floating.fade-out {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Custom scrollbar for file lists */
+.list-group::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list-group::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.list-group::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.list-group::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Drag and drop styles */
+.drag-over {
+    border: 2px dashed #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.drop-zone:hover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Tooltip improvements */
+.tooltip {
+    font-size: 0.875rem;
+}
+
+/* Input group improvements */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+/* Button group improvements */
+.btn-group .btn {
+    border-radius: 0.375rem;
+}
+
+.btn-group .btn:not(:last-child) {
+    margin-right: 0.25rem;
+}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF水印批处理工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <header class="py-3 mb-4 border-bottom">
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                        PDF水印批处理工具
+                    </h1>
+                    <small class="text-muted">批量添加水印、重命名PDF文件</small>
+                </header>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 左侧面板 -->
+            <div class="col-lg-8">
+                <!-- API连接状态 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>API连接状态:</span>
+                            <button id="testConnection" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise"></i> 测试连接
+                            </button>
+                        </div>
+                        <div id="connectionStatus" class="mt-2">
+                            <span class="badge bg-secondary">未测试</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文件选择 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-folder2-open"></i>
+                            1. 选择PDF文件
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">选择文件或文件夹:</label>
+                            <div class="input-group">
+                                <input type="text" id="filePath" class="form-control" placeholder="输入文件或文件夹路径">
+                                <button class="btn btn-outline-secondary" type="button" id="browseFiles">
+                                    <i class="bi bi-file-earmark-pdf"></i> 选择PDF文件
+                                </button>
+                                <button class="btn btn-outline-info" type="button" id="browseFolders">
+                                    <i class="bi bi-folder2-open"></i> 选择文件夹
+                                </button>
+                                <button class="btn btn-primary" type="button" id="scanFiles">
+                                    <i class="bi bi-search"></i> 扫描
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                可以手动输入路径，或使用浏览按钮选择文件/文件夹
+                            </div>
+                            <!-- 隐藏的文件输入元素 -->
+                            <input type="file" id="fileInput" multiple accept=".pdf" style="display: none;">
+                            <input type="file" id="folderInput" webkitdirectory style="display: none;">
+                        </div>
+
+                        <div id="fileList" class="mt-3" style="display: none;">
+                            <h6>找到的PDF文件 (<span id="fileCount">0</span>个):</h6>
+                            <div id="fileItems" class="list-group" style="max-height: 200px; overflow-y: auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文件排序 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-sort-alpha-down"></i>
+                            2. 文件排序方式
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sortType" id="sortByName" value="filename" checked>
+                            <label class="form-check-label" for="sortByName">
+                                按原文件名排序
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sortType" id="sortByTime" value="mtime">
+                            <label class="form-check-label" for="sortByTime">
+                                按更新时间排序
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文件命名规则 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-pencil-square"></i>
+                            3. 文件命名规则
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="namingPattern" class="form-label">命名模式:</label>
+                            <input type="text" class="form-control" id="namingPattern" 
+                                   placeholder="《权力的游戏》剧本S01E{nn}-{yyyyMMdd}"
+                                   value="《权力的游戏》剧本S01E{nn}-{yyyyMMdd}">
+                            <div class="form-text">
+                                支持变量: {n}, {nn}, {nnn}... (编号), {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss} (日期时间)
+                            </div>
+                        </div>
+
+                        <button class="btn btn-outline-info btn-sm" id="previewNaming">
+                            <i class="bi bi-eye"></i> 预览命名
+                        </button>
+
+                        <div id="namingPreview" class="mt-3" style="display: none;">
+                            <h6>命名预览:</h6>
+                            <div id="previewItems" class="list-group" style="max-height: 200px; overflow-y: auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 输出目录 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-folder-plus"></i>
+                            4. 输出目录
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <input type="text" id="outputDir" class="form-control" placeholder="选择输出目录">
+                            <button class="btn btn-outline-secondary" type="button" id="browseOutput">
+                                <i class="bi bi-folder"></i> 选择文件夹
+                            </button>
+                        </div>
+                        <!-- 隐藏的文件夹输入元素 -->
+                        <input type="file" id="outputFolderInput" webkitdirectory style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧面板 -->
+            <div class="col-lg-4">
+                <!-- 水印设置 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-water"></i>
+                            水印设置
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="watermarkText" class="form-label">水印文字 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="watermarkText" placeholder="请输入水印文字" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="rotation" class="form-label">旋转角度</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="rotation" value="45" min="0" max="360">
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fontSize" class="form-label">字体大小</label>
+                            <input type="number" class="form-control" id="fontSize" value="48" min="8" max="200">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="opacity" class="form-label">不透明度</label>
+                            <div class="input-group">
+                                <input type="range" class="form-range" id="opacity" min="1" max="100" value="10">
+                                <span class="input-group-text" id="opacityValue">10%</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="watermarkColor" class="form-label">字体颜色</label>
+                            <input type="color" class="form-control form-control-color" id="watermarkColor" value="#808080">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="widthSpacer" class="form-label">水平间距</label>
+                                <input type="number" class="form-control" id="widthSpacer" value="50" min="10" max="200">
+                            </div>
+                            <div class="col-6">
+                                <label for="heightSpacer" class="form-label">垂直间距</label>
+                                <input type="number" class="form-control" id="heightSpacer" value="50" min="10" max="200">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 执行按钮 -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <button id="processFiles" class="btn btn-success btn-lg w-100" disabled>
+                            <i class="bi bi-play-circle"></i>
+                            开始处理
+                        </button>
+                        <div id="progressContainer" class="mt-3" style="display: none;">
+                            <div class="progress">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="progressText" class="text-muted">准备中...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 处理结果 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div id="resultsContainer" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            处理结果
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsSummary" class="alert alert-info"></div>
+                        <div id="resultsDetails" class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>原文件</th>
+                                        <th>输出文件</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
