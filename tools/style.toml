@@ -1,0 +1,6 @@
+[docx.run]
+RedText = "strong"
+DeleteText = "del"
+
+[docx.paragraph]
+QuotePara = "blockquote"

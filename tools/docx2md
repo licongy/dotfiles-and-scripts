@@ -20,6 +20,7 @@ import subprocess
 import questionary # type: ignore
 from pathlib import Path
 import datetime
+import tomllib
 from typing import (
     Union, List, Optional, Dict, overload, Callable, TypedDict
   )
@@ -143,6 +144,64 @@ def build_front_matter(data: FMData) -> str:
     return '\n'.join(fm_lines)
 
 
+def get_style_mapping(source_folder: str) -> str:
+    """
+    获取样式映射，优先级：
+    1. 转换源目录 (source_folder) 下的 style.toml
+    2. 脚本所在目录下的 style.toml
+    3. 默认硬编码映射
+    """
+    default_mapping = (
+        "r[style-name='RedText'] => strong\n"
+        "r[style-name='DeleteText'] => del"
+    )
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    local_toml = os.path.join(source_folder, "style.toml")
+    script_toml = os.path.join(script_dir, "style.toml")
+    
+    target_toml = None
+    if os.path.exists(local_toml):
+        target_toml = local_toml
+    elif os.path.exists(script_toml):
+        target_toml = script_toml
+        
+    if not target_toml:
+        return default_mapping
+        
+    try:
+        with open(target_toml, "rb") as f:
+            data = tomllib.load(f)
+            
+        docx_config = data.get("docx", {})
+        if not docx_config:
+            return default_mapping
+            
+        mapping_lines = []
+        
+        # 兼容简易结构 [docx] 下直接写 KV (默认映射为 r)
+        for k, v in docx_config.items():
+            if isinstance(v, str):
+                mapping_lines.append(f"r[style-name='{k}'] => {v}")
+                
+        # 支持 [docx.run]
+        for k, v in docx_config.get("run", {}).items():
+            mapping_lines.append(f"r[style-name='{k}'] => {v}")
+            
+        # 支持 [docx.paragraph]
+        for k, v in docx_config.get("paragraph", {}).items():
+            mapping_lines.append(f"p[style-name='{k}'] => {v}")
+            
+        if not mapping_lines:
+            return default_mapping
+            
+        return "\n".join(mapping_lines)
+        
+    except Exception as e:
+        print(f"[警告] 读取 {target_toml} 出错: {e}。将使用默认样式映射。")
+        return default_mapping
+
+
 def convert_docx_to_md(
     source_folder: str,
     target_folder: str,
@@ -172,6 +231,8 @@ def convert_docx_to_md(
 
     first_doc_path = os.path.join(source_folder, docx_files[0])
     common_info: FMData = prompt_common_front_matter(first_doc_path)
+    
+    style_mapping = get_style_mapping(source_folder)
 
     counter = 1
     for doc in docx_files:
@@ -193,8 +254,8 @@ def convert_docx_to_md(
 
         ctype = common_info.get('content_type', '')
         
-        # 文件名：类型 + 集数/序列号 + 时间.md
-        base_name = f"{ctype}{file_num}_{date_str}"
+        # 文件名：Prefix + 类型 + 集数/序列号 + Suffix + 时间.md
+        base_name = f"{prefix}{ctype}{file_num}_{date_str}{suffix}"
         dst_name = f"{base_name}.md"
         dst_path = os.path.join(target_folder, dst_name)
 
@@ -210,14 +271,6 @@ def convert_docx_to_md(
 
         try:
             md = MarkItDown()
-            
-            # Mammoth style mapping rules
-            # 1. Map custom Run style 'RedText' to strong (markdown **)
-            # 2. Map custom Run style 'DeleteText' to del (markdown ~~)
-            style_mapping = (
-                "r[style-name='RedText'] => strong\n"
-                "r[style-name='DeleteText'] => del"
-            )
             
             result = md.convert(src_path, style_map=style_mapping)
             md_content = result.text_content
